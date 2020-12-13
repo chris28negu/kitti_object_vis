@@ -221,14 +221,14 @@ def show_image_with_boxes(data_idx, img, objects, calib, show3d=True, depth=None
         # img3 = utils.draw_projected_box3d(img3, box3d_pts_32d)
     # print("img1:", img1.shape)
     cv2.imshow("2dbox", img1)
-    cv2.imwrite("2dbox" & str(data_idx).zfill(6) & ".png", img1)
+    cv2.imwrite("imgs/2dbox/" + str(data_idx).zfill(6) + ".png", img1)
     # print("img3:",img3.shape)
     # Image.fromarray(img3).show()
     show3d = True
     if show3d:
         # print("img2:",img2.shape)
         cv2.imshow("3dbox", img2)
-        cv2.imwrite("3dbox" & str(data_idx).zfill(6) & ".png", img2)
+        cv2.imwrite("imgs/3dbox/" + str(data_idx).zfill(6) + ".png", img2)
     if depth is not None:
         cv2.imshow("depth", depth)
     
@@ -726,6 +726,7 @@ def dataset_viz(root_dir, args):
         fig = mlab.figure(
             figure=None, bgcolor=(0, 0, 0), fgcolor=None, engine=None, size=(1000, 500)
         )
+
     for data_idx in range(len(dataset)):
         if args.ind > 0:
             data_idx = args.ind
@@ -815,10 +816,10 @@ def dataset_viz(root_dir, args):
             show_lidar_on_image(pc_velo[:, 0:3], img, calib, img_width, img_height)
         input_str = raw_input()
 
-        mlab.clf()
+        if args.show_lidar_with_depth:
+            mlab.clf()
         if input_str == "killall":
             break
-
 
 def depth_to_lidar_format(root_dir, args):
     dataset = kitti_object(root_dir, split=args.split, args=args)
