@@ -182,7 +182,7 @@ def viz_kitti_video():
     return
 
 
-def show_image_with_boxes(img, objects, calib, show3d=True, depth=None):
+def show_image_with_boxes(data_idx, img, objects, calib, show3d=True, depth=None, objects_pred=None):
     """ Show image with 2D bounding boxes """
     img1 = np.copy(img)  # for 2d bbox
     img2 = np.copy(img)  # for 3d bbox
@@ -200,6 +200,20 @@ def show_image_with_boxes(img, objects, calib, show3d=True, depth=None):
         box3d_pts_2d, _ = utils.compute_box_3d(obj, calib.P)
         img2 = utils.draw_projected_box3d(img2, box3d_pts_2d)
 
+    if objects_pred is not None:
+        for obj in objects_pred:
+            if obj.type == "DontCare":
+                continue
+            cv2.rectangle(
+                img1,
+                (int(obj.xmin), int(obj.ymin)),
+                (int(obj.xmax), int(obj.ymax)),
+                (0, 0, 255),
+                2,
+            )
+            box3d_pts_2d, _ = utils.compute_box_3d(obj, calib.P)
+            img2 = utils.draw_projected_box3d(img2, box3d_pts_2d, (0, 0, 255))
+
         # project
         # box3d_pts_3d_velo = calib.project_rect_to_velo(box3d_pts_3d)
         # box3d_pts_32d = utils.box3d_to_rgb_box00(box3d_pts_3d_velo)
@@ -207,12 +221,14 @@ def show_image_with_boxes(img, objects, calib, show3d=True, depth=None):
         # img3 = utils.draw_projected_box3d(img3, box3d_pts_32d)
     # print("img1:", img1.shape)
     cv2.imshow("2dbox", img1)
+    cv2.imwrite("2dbox" & str(data_idx).zfill(6) & ".png", img1)
     # print("img3:",img3.shape)
     # Image.fromarray(img3).show()
     show3d = True
     if show3d:
         # print("img2:",img2.shape)
         cv2.imshow("3dbox", img2)
+        cv2.imwrite("3dbox" & str(data_idx).zfill(6) & ".png", img2)
     if depth is not None:
         cv2.imshow("depth", depth)
     
@@ -774,7 +790,7 @@ def dataset_viz(root_dir, args):
         # show_image_with_boxes_3type(img, objects, calib, objects2d, data_idx, objects_pred)
         if args.show_image_with_boxes:
             # Draw 2d and 3d boxes on image
-            show_image_with_boxes(img, objects, calib, True, depth)
+            show_image_with_boxes(data_idx, img, objects, calib, True, depth, objects_pred)
         if args.show_lidar_with_depth:
             # Draw 3d box in LiDAR point cloud
             show_lidar_with_depth(
